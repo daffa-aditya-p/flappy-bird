@@ -1,0 +1,44 @@
+/**
+ * ============================================
+ * Modern Flappy Bird - Professional Edition
+ * Style: Python-inspired Web Game
+ * ============================================
+ * Designer: Samsul Bahrur
+ * Developer: Daffa Aditya Pratama
+ * ============================================
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    border: 3px solid rgb(88, 101, 242);
+    box-shadow: 0 0 40px rgba(88, 101, 242, 0.5);
+    max-width: 95vw;
+    max-height: 95vh;
+    cursor: pointer;
+    border-radius: 10px;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    #gameCanvas {
+        border-width: 2px;
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}
