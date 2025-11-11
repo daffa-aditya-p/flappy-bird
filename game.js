@@ -70,7 +70,7 @@ let previousState = 'MAIN_MENU';
 // PLAYER DATA
 // ============================================
 let player = {
-    coins: 10000000000,
+    coins: 0,
     highScore: 0,
     birdSkin: 'default',
     obstacleSkin: 'default',
