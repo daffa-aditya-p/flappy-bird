@@ -74,7 +74,7 @@ const OBSTACLES = [
 
 // ========== DEFAULT LEADERBOARD - MATCH PYTHON ==========
 const DEFAULT_LEADERBOARD = [
-    { name: 'Etmin', score: 999999 },
+    { name: 'Daffa', score: 99999999 },
     { name: 'ALIF', score: 2000 },
     { name: 'HIDUP ITC WEB', score: 1050 },
     { name: 'SAMSUL', score: 1000 },
@@ -1134,6 +1134,9 @@ class Game {
     nameInputScreen() {
         this.drawBackground();
         
+        // Show HTML overlay for mobile keyboard support
+        this.showNameInputOverlay();
+        
         // Title
         ctx.fillStyle = C.GOLD;
         ctx.font = 'bold 56px "Segoe UI"';
@@ -1175,6 +1178,31 @@ class Game {
         
         this.currentButtons = [];
         this.updateParticles();
+    }
+    
+    // ========== SHOW/HIDE NAME INPUT OVERLAY ==========
+    showNameInputOverlay() {
+        const overlay = document.getElementById('nameInputOverlay');
+        const scoreDisplay = document.getElementById('overlayScore');
+        const inputField = document.getElementById('nameInputField');
+        
+        if (overlay && !overlay.classList.contains('active')) {
+            overlay.classList.add('active');
+            scoreDisplay.textContent = `Score: ${this.score}`;
+            inputField.value = this.playerName;
+            // Focus input to trigger mobile keyboard
+            setTimeout(() => inputField.focus(), 100);
+        }
+    }
+    
+    hideNameInputOverlay() {
+        const overlay = document.getElementById('nameInputOverlay');
+        const inputField = document.getElementById('nameInputField');
+        
+        if (overlay) {
+            overlay.classList.remove('active');
+            inputField.blur();
+        }
     }
     
     // ========== UPDATE PARTICLES ==========
@@ -1363,22 +1391,13 @@ class Game {
                 }
             }
         } else if (this.state === 'nameInput') {
-            if (key === 'Enter') {
-                if (this.playerName.trim()) {
-                    this.addToLeaderboard(this.playerName.trim(), this.score);
-                    this.createParticles(SCREEN_WIDTH / 2, 350, C.GOLD, 30);
-                }
+            // Skip keyboard handling here - let HTML input handle it
+            // Only handle ESC for cancel
+            if (key === 'Escape') {
                 this.nameInputActive = false;
                 this.playerName = "";
-                this.state = 'leaderboard';
-            } else if (key === 'Escape') {
-                this.nameInputActive = false;
-                this.playerName = "";
+                this.hideNameInputOverlay();
                 this.state = 'menu';
-            } else if (key === 'Backspace') {
-                this.playerName = this.playerName.slice(0, -1);
-            } else if (key.length === 1 && this.playerName.length < 20) {
-                this.playerName += key;
             }
         } else if (this.state !== 'menu') {
             if (key === 'Escape') {
@@ -1453,6 +1472,47 @@ window.addEventListener('resize', resizeCanvas);
 document.addEventListener('fullscreenchange', () => {
     game.fullscreen = !!document.fullscreenElement;
     resizeCanvas();
+});
+
+// ========== NAME INPUT OVERLAY EVENT LISTENERS ==========
+const nameInputField = document.getElementById('nameInputField');
+const submitNameBtn = document.getElementById('submitNameBtn');
+const cancelNameBtn = document.getElementById('cancelNameBtn');
+
+// Sync input field with game state
+nameInputField.addEventListener('input', (e) => {
+    game.playerName = e.target.value.substring(0, 20);
+});
+
+// Submit button
+submitNameBtn.addEventListener('click', () => {
+    if (game.playerName.trim()) {
+        game.addToLeaderboard(game.playerName.trim(), game.score);
+        game.createParticles(SCREEN_WIDTH / 2, 350, C.GOLD, 30);
+    }
+    game.nameInputActive = false;
+    game.playerName = "";
+    game.hideNameInputOverlay();
+    game.state = 'leaderboard';
+});
+
+// Cancel button
+cancelNameBtn.addEventListener('click', () => {
+    game.nameInputActive = false;
+    game.playerName = "";
+    game.hideNameInputOverlay();
+    game.state = 'menu';
+});
+
+// Handle Enter key in input field
+nameInputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        submitNameBtn.click();
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelNameBtn.click();
+    }
 });
 
 // ========== GAME LOOP ==========
