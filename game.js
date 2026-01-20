@@ -74,7 +74,7 @@ const OBSTACLES = [
 
 // ========== DEFAULT LEADERBOARD - MATCH PYTHON ==========
 const DEFAULT_LEADERBOARD = [
-    { name: 'Daffa', score: 99999999 },
+    { name: 'Etmin', score: 999999 },
     { name: 'ALIF', score: 2000 },
     { name: 'HIDUP ITC WEB', score: 1050 },
     { name: 'SAMSUL', score: 1000 },
@@ -246,6 +246,9 @@ class Game {
         
         // Shake offset
         this.shakeOffset = { x: 0, y: 0 };
+        
+        // Game over buttons
+        this.gameOverButtons = [];
     }
     
     loadLeaderboard() {
@@ -642,26 +645,49 @@ class Game {
             // Score
             ctx.fillStyle = C.WHITE;
             ctx.font = 'bold 36px "Segoe UI"';
-            ctx.fillText(`Score: ${this.score}`, SCREEN_WIDTH / 2, 300);
+            ctx.fillText(`Score: ${this.score}`, SCREEN_WIDTH / 2, 280);
             
             // New record check
-            if (this.score > this.highscore) {
+            const isNewRecord = this.score > this.highscore;
+            if (isNewRecord) {
                 this.highscore = this.score;
                 ctx.fillStyle = C.GOLD;
                 ctx.font = '28px "Segoe UI"';
-                ctx.fillText('🎉 NEW RECORD! 🎉', SCREEN_WIDTH / 2, 360);
-                
-                // Check leaderboard eligibility
-                if (this.leaderboard.length < 20 || this.score > this.leaderboard[this.leaderboard.length - 1].score) {
-                    ctx.fillStyle = C.GOLD;
-                    ctx.font = '20px "Segoe UI"';
-                    ctx.fillText('Press L to enter LEADERBOARD!', SCREEN_WIDTH / 2, 400);
-                }
+                ctx.fillText('🎉 NEW RECORD! 🎉', SCREEN_WIDTH / 2, 340);
             }
             
-            ctx.fillStyle = C.ACCENT;
-            ctx.font = '24px "Segoe UI"';
-            ctx.fillText('Press R to Restart or ESC for Menu', SCREEN_WIDTH / 2, 450);
+            // Game Over Buttons
+            const gameOverButtons = [];
+            const btnY = isNewRecord ? 400 : 360;
+            
+            // Restart Button
+            const restartBtn = new Button(SCREEN_WIDTH / 2 - 260, btnY, 160, 55, '🔄 RESTART', C.SECONDARY, C.ACCENT);
+            restartBtn.checkHover(this.mouseX, this.mouseY);
+            restartBtn.draw(ctx, 18);
+            gameOverButtons.push({ type: 'restart', btn: restartBtn });
+            
+            // Menu Button
+            const menuBtn = new Button(SCREEN_WIDTH / 2 - 80, btnY, 160, 55, '🏠 MENU', C.PRIMARY, C.ACCENT);
+            menuBtn.checkHover(this.mouseX, this.mouseY);
+            menuBtn.draw(ctx, 18);
+            gameOverButtons.push({ type: 'menu', btn: menuBtn });
+            
+            // Leaderboard Button (only if eligible)
+            const isEligible = this.leaderboard.length < 20 || this.score > this.leaderboard[this.leaderboard.length - 1].score;
+            if (isEligible && this.score > 0) {
+                const leaderBtn = new Button(SCREEN_WIDTH / 2 + 100, btnY, 160, 55, '🏆 SUBMIT', C.GOLD, C.ACCENT);
+                leaderBtn.checkHover(this.mouseX, this.mouseY);
+                leaderBtn.draw(ctx, 18);
+                gameOverButtons.push({ type: 'leaderboard', btn: leaderBtn });
+            }
+            
+            // Store game over buttons
+            this.gameOverButtons = gameOverButtons;
+            
+            // Hint text
+            ctx.fillStyle = C.GRAY;
+            ctx.font = '16px "Segoe UI"';
+            ctx.fillText('Keyboard: R = Restart | ESC = Menu | L = Submit Score', SCREEN_WIDTH / 2, btnY + 80);
             
             this.saveData();
         }
@@ -1220,6 +1246,26 @@ class Game {
                 this.birdVel = JUMP_FORCE;
                 playJump();
                 this.createParticles(200, this.birdY, C.ACCENT, 5);
+            } else {
+                // Handle game over buttons
+                if (this.gameOverButtons) {
+                    for (const item of this.gameOverButtons) {
+                        if (item.btn.isClicked(x, y)) {
+                            if (item.type === 'restart') {
+                                this.resetGame();
+                                this.createParticles(SCREEN_WIDTH / 2, 400, C.SECONDARY, 20);
+                            } else if (item.type === 'menu') {
+                                this.state = 'menu';
+                                this.createParticles(SCREEN_WIDTH / 2, 400, C.PRIMARY, 20);
+                            } else if (item.type === 'leaderboard') {
+                                this.nameInputActive = true;
+                                this.state = 'nameInput';
+                                this.createParticles(SCREEN_WIDTH / 2, 300, C.GOLD, 30);
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         } else if (this.state === 'shop') {
             for (const item of this.currentButtons) {
@@ -1422,7 +1468,6 @@ console.log('============================================');
 console.log('🎮 MODERN FLAPPY BIRD - STARTED!');
 console.log('============================================');
 console.log('Developer: Daffa Aditya Pratama');
-console.log('Perancang Ide: Nazriel Irham');
 console.log('Designer: Samsul Bahrur');
 console.log('============================================');
 console.log('100% Synchronized dengan Python/Pygame Version');
